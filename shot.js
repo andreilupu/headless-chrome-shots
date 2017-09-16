@@ -14,7 +14,7 @@ const argv = require('yargs')
 	})
 	.option('out', {
 		default: '-',
-		describe: 'File path to save. If `-` specified, outputs to console in base64-encoded'
+		describe: 'File path to save, no extension. If `-` specified, outputs to console in base64-encoded'
 	})
 	.option('delay', {
 		default: 1500,
@@ -85,6 +85,8 @@ const sleep = (ms) => {
 	var deviceDimentions = await page._client.send('Page.getLayoutMetrics');
 
 	let ssArgs = {
+		type: 'jpeg',
+		quality: 50,
 		clip: {
 			x: 0,
 			y: 0,
@@ -94,7 +96,7 @@ const sleep = (ms) => {
 	}
 
 	if ( out !== '-' ) {
-		ssArgs.path = out;
+		ssArgs.path = out + '.jpeg';
 	}
 
 	await page.screenshot(ssArgs);
