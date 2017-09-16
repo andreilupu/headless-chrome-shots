@@ -15,7 +15,7 @@ WORKDIR /app
 COPY package.json /app
 COPY shot.js /app/shot.js
 
-RUN npm install
+RUN yarn
 
 #COPY . /app
 
