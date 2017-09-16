@@ -97,7 +97,7 @@ const sleep = (ms) => {
 		ssArgs.path = out;
 	}
 
-	return await page.screenshot(ssArgs);
+	await page.screenshot(ssArgs);
 
 	browser.close();
 })()
