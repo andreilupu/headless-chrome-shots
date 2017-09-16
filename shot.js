@@ -86,7 +86,7 @@ const sleep = (ms) => {
 
 	let ssArgs = {
 		type: 'jpeg',
-		quality: 50,
+		quality: 70,
 		clip: {
 			x: 0,
 			y: 0,
