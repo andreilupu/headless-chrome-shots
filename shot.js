@@ -56,7 +56,14 @@ const sleep = (ms) => {
 }
 
 function shot(url, title, screen = 'desk', out = '-', delay = 1500, before_ss = null){
-	puppeteer.launch().then(async browser => {
+	puppeteer.launch({
+		args: [
+			'--no-sandbox',
+			'--disable-gpu',
+			'--disable-setuid-sandbox',
+			'--remote-debugging-port=9222'
+		]
+	}).then(async browser => {
 		const sizes = screens[screen]
 		const page = await browser.newPage()
 		await page.setViewport({'width': sizes.w, 'height': sizes.h, deviceScaleFactor: 1 })
