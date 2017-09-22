@@ -57,17 +57,10 @@ const sleep = (ms) => {
 
 function shot(url, title, screen = 'desk', out = '-', delay = 1500, before_ss = null){
 	puppeteer.launch().then(async browser => {
-		console.log('shot a ss')
-
 		const sizes = screens[screen]
-		// console.log(browser);
 		const page = await browser.newPage()
-		// return sizes;
-
 		await page.setViewport({'width': sizes.w, 'height': sizes.h, deviceScaleFactor: 1 })
-
 		await page.goto(url)
-
 		await sleep(delay)
 
 		if ( typeof before_ss !== "undefined" && before_ss !== null ) {
@@ -100,7 +93,6 @@ function shot(url, title, screen = 'desk', out = '-', delay = 1500, before_ss = 
 				title: title,
 				img: await page.screenshot(ssArgs)
 			}
-
 
 			await fs.writeFile( './' + out,  JSON.stringify(imgJson), 'utf8', function () {
 				return null;
