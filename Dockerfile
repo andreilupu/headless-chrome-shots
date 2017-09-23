@@ -20,7 +20,7 @@ COPY shot.js /app/shot.js
 #RUN npm install
 RUN yarn
 
-USER node
+USER circleci
 
 #COPY . /app
 
