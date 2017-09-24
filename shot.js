@@ -55,92 +55,93 @@ const sleep = (ms) => {
 	return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-puppeteer.launch({
-		args: [
-			'--no-sandbox',
-			'--disable-gpu',
-			'--disable-setuid-sandbox',
-			'--remote-debugging-port=9222'
-		]
-	}).then(async browser => {
+(async () => {
+	const app = await puppeteer.launch()
+		.then(async browser => {
 
-		const shot = async function (url, title, screen = 'desk', out = '-', delay = 1500, before_ss = null, last = false ) {
-			const sizes = screens[screen]
-			const page = await browser.newPage()
-			await page.setViewport({'width': sizes.w, 'height': sizes.h, deviceScaleFactor: 1})
-			await page.goto(url)
-			await sleep(delay)
+			const shot = async function (url, title, screen = 'desk', out = '-', delay = 1500, before_ss = null, last = false ) {
+				const sizes = screens[screen]
+				const page = await browser.newPage()
+				await page.setViewport({'width': sizes.w, 'height': sizes.h, deviceScaleFactor: 1})
+				await page.goto(url)
+				await sleep(delay)
 
-			if (typeof before_ss !== "undefined" && before_ss !== null) {
-				try {
-					const bf = require(before_ss)
-					bf(page)
-				} catch (e) {
-					console.log(e);
+				if (typeof before_ss !== "undefined" && before_ss !== null) {
+					try {
+						const bf = require(before_ss)
+						bf(page)
+					} catch (e) {
+						console.log(e);
+					}
 				}
-			}
 
-			var deviceDimentions = await page._client.send('Page.getLayoutMetrics');
+				var deviceDimentions = await page._client.send('Page.getLayoutMetrics');
 
-			let ssArgs = {
-				type: 'jpeg',
-				quality: 70,
-				clip: {
-					x: 0,
-					y: 0,
-					width: sizes.w,
-					height: deviceDimentions.contentSize.height
+				let ssArgs = {
+					type: 'jpeg',
+					quality: 70,
+					clip: {
+						x: 0,
+						y: 0,
+						width: sizes.w,
+						height: deviceDimentions.contentSize.height
+					}
 				}
-			}
 
-			if (out.indexOf('.json')) {
-				delete ssArgs.type
-				delete ssArgs.quality
+				if (out.indexOf('.json')) {
+					delete ssArgs.type
+					delete ssArgs.quality
 
-				let imgJson = {
-					title: title,
-					img: await page.screenshot(ssArgs)
-			}
-
-				await fs.writeFile('./' + out, JSON.stringify(imgJson), 'utf8', function () {
-					return null;
-				});
-
-			} else if (out !== '-') {
-				ssArgs.path = out + '.jpeg';
-				await page.screenshot(ssArgs);
-			}
-
-			if ( last ) {
-				// console.log('should close')
-				browser.close()
-			}
-		}
-
-		if (typeof configPath === "undefined") {
-			const {url, screen, out, delay} = argv
-			await shot(url, out, screen, out, delay)
-		} else {
-			var config = fs.readFileSync(configPath, 'utf-8')
-			config = JSON.parse(config)
-
-			// await shot( 'https://andrei-lupu.com', 'page', 'desk', 'page.json' );
-
-			Object.keys(config).forEach( function(key) {
-				let pages = config[key];
-				var last = false
-
-				Object.keys(pages).forEach( function( pageName, k ) {
-
-					let args = pages[pageName];
-
-					if ( ( Object.keys(pages).length - 1) === k) {
-						last = true
+					let imgJson = {
+						title: title,
+						img: await page.screenshot(ssArgs)
 					}
 
-					shot( args.url, pageName, args.screen, args.out, 1000, null, last )
-				})
-			});
-		}
+					console.log(out)
 
-	})
+					await fs.writeFile('./' + out, JSON.stringify(imgJson), 'utf8', function () {
+						return null;
+					});
+
+				} else if (out !== '-') {
+					ssArgs.path = out + '.jpeg';
+					await page.screenshot(ssArgs);
+				}
+
+				if ( last ) {
+					// console.log('should close')
+					browser.close()
+				}
+			}
+
+			if (typeof configPath === "undefined") {
+				const {url, screen, out, delay} = argv
+				await shot(url, out, screen, out, delay)
+			} else {
+				var config = fs.readFileSync(configPath, 'utf-8')
+				config = JSON.parse(config)
+
+				// await shot( 'https://andrei-lupu.com', 'page', 'desk', 'page.json' );
+
+				Object.keys(config).forEach( function(key) {
+					let pages = config[key];
+					var last = false
+
+					Object.keys(pages).forEach( function( pageName, k ) {
+
+						let args = pages[pageName];
+
+						if ( ( Object.keys(pages).length - 1) === k) {
+							last = true
+						}
+
+						shot( args.url, pageName, args.screen, args.out, 1000, null, last )
+					})
+				});
+			}
+
+		})
+		.catch( e => {
+			console.log(e)
+		})
+})();
