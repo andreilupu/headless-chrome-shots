@@ -16,7 +16,7 @@ WORKDIR /tmp/chrome-shots
 
 COPY package.json /tmp/chrome-shots/package.json
 COPY shot.js /tmp/chrome-shots/shot.js
-
+COPY json/ /tmp/chrome-shots/json
 #RUN npm install
 RUN yarn
 
