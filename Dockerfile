@@ -12,10 +12,10 @@ RUN apt-get update && \
 
 RUN mkdir -p /app
 
-WORKDIR /app
+WORKDIR /tmp/app
 
-COPY package.json /app/package.json
-COPY shot.js /app/shot.js
+COPY package.json /tmp/app/package.json
+COPY shot.js /tmp/app/shot.js
 
 #RUN npm install
 RUN yarn
