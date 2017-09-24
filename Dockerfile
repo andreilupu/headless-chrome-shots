@@ -1,4 +1,4 @@
-FROM circleci/node:latest-browsers
+FROM circleci/node:latest
 
 USER root
 
