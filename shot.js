@@ -99,9 +99,13 @@ const sleep = (ms) => {
 					delete ssArgs.type
 					delete ssArgs.quality
 
+					const imgData = await page.screenshot(ssArgs)
+
+					var base64Image = new Buffer(imgData, 'binary').toString('base64');
+
 					let imgJson = {
 						title: title,
-						img: await page.screenshot(ssArgs)
+						img:base64Image
 					}
 
 					console.log(out)
