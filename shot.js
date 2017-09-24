@@ -106,9 +106,14 @@ const sleep = (ms) => {
 
 					console.log(out)
 
-					await fs.writeFile('./' + out, JSON.stringify(imgJson), 'utf8', function () {
-						return null;
-					});
+					try {
+						const file = await fs.writeFile( out, JSON.stringify(imgJson), 'utf8', function () {
+							return null;
+						});
+					} catch(e) {
+						console.log(e)
+					}
+
 
 				} else if (out !== '-') {
 					ssArgs.path = out + '.jpeg';
@@ -117,7 +122,7 @@ const sleep = (ms) => {
 
 				if ( last ) {
 					// console.log('should close')
-					browser.close()
+					await browser.close()
 				}
 			}
 
