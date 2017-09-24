@@ -10,12 +10,12 @@ RUN apt-get update && \
       fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils && \
       apt-get clean && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /app
+RUN cd /tmp/ && mkdir -p /chrome-shots
 
-WORKDIR /tmp/app
+WORKDIR /tmp/chrome-shots
 
-COPY package.json /tmp/app/package.json
-COPY shot.js /tmp/app/shot.js
+COPY package.json /tmp/chrome-shots/package.json
+COPY shot.js /tmp/chrome-shots/shot.js
 
 #RUN npm install
 RUN yarn
