@@ -56,7 +56,14 @@ const sleep = (ms) => {
 }
 
 (async () => {
-	const app = await puppeteer.launch()
+	const app = await puppeteer.launch({
+		args: [
+			'--no-sandbox',
+			'--disable-gpu',
+			'--disable-setuid-sandbox',
+			'--remote-debugging-port=9222'
+		]
+	})
 		.then(async browser => {
 
 			const shot = async function (url, title, screen = 'desk', out = '-', delay = 1500, before_ss = null, last = false ) {
