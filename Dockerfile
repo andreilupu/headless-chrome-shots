@@ -1,4 +1,4 @@
-FROM circleci/node
+FROM circleci/node:latest-browsers
 
 USER root
 
@@ -20,7 +20,7 @@ COPY shot.js /tmp/chrome-shots/shot.js
 #RUN npm install
 RUN yarn
 
-USER circleci
+#USER circleci
 
 #COPY . /app
 
