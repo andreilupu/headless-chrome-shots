@@ -1,4 +1,5 @@
 const fs = require('fs')
+const Jimp = require("jimp")
 const puppeteer = require('puppeteer')
 const argv = require('yargs')
 	.example('$0 --url=https://example.com')
@@ -65,8 +66,7 @@ const sleep = (ms) => {
 		]
 	})
 		.then(async browser => {
-
-			const shot = async function (url, title, screen = 'desk', out = '-', delay = 1500, before_ss = null, last = false ) {
+			const shot = async function (url, title = 'result', screen = 'desk', path = './', delay = 1500, before_ss = null, last = false ) {
 				const sizes = screens[screen]
 				const page = await browser.newPage()
 				await page.setViewport({'width': sizes.w, 'height': sizes.h, deviceScaleFactor: 1})
@@ -84,45 +84,32 @@ const sleep = (ms) => {
 
 				var deviceDimentions = await page._client.send('Page.getLayoutMetrics');
 
-				let ssArgs = {
-					type: 'jpeg',
-					quality: 70,
+				const imgData = await page.screenshot({
 					clip: {
 						x: 0,
 						y: 0,
 						width: sizes.w,
 						height: deviceDimentions.contentSize.height
 					}
-				}
+				})
 
-				if (out.indexOf('.json')) {
-					delete ssArgs.type
-					delete ssArgs.quality
+				Jimp.read(imgData).then( function (image) {
+					return image.getBase64( Jimp.MIME_PNG, function () {
+						this.write( path + title + ".png" );
+					} )
+				})
 
-					const imgData = await page.screenshot(ssArgs)
-
-					var base64Image = new Buffer(imgData, 'binary').toString('base64');
-
-					let imgJson = {
-						title: title,
-						img:base64Image
-					}
-
-					console.log(out)
-
-					try {
-						const file = await fs.writeFile( out, JSON.stringify(imgJson), 'utf8', function () {
-							return null;
-						});
-					} catch(e) {
-						console.log(e)
-					}
-
-
-				} else if (out !== '-') {
-					ssArgs.path = out + '.jpeg';
-					await page.screenshot(ssArgs);
-				}
+				Jimp.read(imgData).then(function (image) {
+					return image.resize( 300, Jimp.AUTO )
+				}).then(function (image) {
+					return image.crop( 0, 0, 300, 300 )
+				}).then(function (image) {
+					image.getBase64( Jimp.MIME_PNG, function (err, image) {
+						this.write( path + "thumb-" + title + ".png" )
+					} )
+				}).catch(function (err) {
+					console.error(err);
+				});
 
 				if ( last ) {
 					// console.log('should close')
@@ -137,25 +124,22 @@ const sleep = (ms) => {
 				var config = fs.readFileSync(configPath, 'utf-8')
 				config = JSON.parse(config)
 
-				// await shot( 'https://andrei-lupu.com', 'page', 'desk', 'page.json' );
-
 				Object.keys(config).forEach( function(key) {
-					let pages = config[key];
-					var last = false
+					let pages = config[key]["pages"],
+						last = false,
+						outPath = config[key]["outPath"]
 
 					Object.keys(pages).forEach( function( pageName, k ) {
-
 						let args = pages[pageName];
 
 						if ( ( Object.keys(pages).length - 1) === k) {
 							last = true
 						}
 
-						shot( args.url, pageName, args.screen, args.out, 1000, null, last )
+						shot( args.url, pageName, args.screen, outPath, 1000, null, last )
 					})
 				});
 			}
-
 		})
 		.catch( e => {
 			console.log(e)
