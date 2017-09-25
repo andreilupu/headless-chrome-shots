@@ -119,7 +119,7 @@ const sleep = (ms) => {
 					if ( compare_with !== null ) {
 
 						Jimp.read( path +  "thumb-" + compare_with + ".png", function (err, image2) {
-							var diff = Jimp.diff(image, image2, 0.2);
+							var diff = Jimp.diff( image, image2, 0.2 )
 
 							diff.image.write( path + 'diff-' +  "thumb-" + title + '.png',function (err) {} )
 						})
@@ -132,7 +132,53 @@ const sleep = (ms) => {
 				if ( last ) {
 					// console.log('should close')
 					await browser.close()
+					setTimeout( maybeDiff, 500 )
 				}
+			}
+
+			const makediff = async function (url, title = 'result', screen = 'desk', path = './', delay = 1500, before_ss = null, last = false, compare_with = null ) {
+				const sizes = screens[screen]
+
+				if ( compare_with !== null ) {
+					await Jimp.read(path + title + ".png").then( async function (image) {
+						await Jimp.read( path + compare_with + ".png", function (err, image2) {
+							var diff = Jimp.diff( image, image2, 0.2 )
+							diff.image.write( path + 'diff-' + title + '.png',function (err) {} )
+						})
+					})
+				}
+
+				await Jimp.read(path + title + ".png").then(function (image) {
+					image.write( path + "thumb-" + title + ".png" )
+
+					if ( compare_with !== null ) {
+						Jimp.read( path +  "thumb-" + compare_with + ".png", function (err, image2) {
+							var diff = Jimp.diff(image, image2, 0.2);
+							diff.image.write( path + 'diff-' + "thumb-" + title + '.png',function (err) {} )
+						})
+					}
+				}).catch(function (err) {
+					console.error(err)
+				});
+			}
+
+			function maybeDiff() {
+				// maybe compare
+				Object.keys(config).forEach( function(key) {
+					let pages = config[key]["pages"],
+						outPath = config[key]["outPath"]
+
+					Object.keys(pages).forEach( function( pageName, k ) {
+						let args = pages[pageName]
+						let compare_with = null
+
+						if ( typeof args['compare_with'] !== "undefined" && typeof pages[args['compare_with']] !== "undefined" ) {
+							compare_with = args['compare_with']
+						}
+
+						makediff( args.url, pageName, args.screen, outPath, 1000, null, false, compare_with)
+					})
+				});
 			}
 
 			if (typeof configPath === "undefined") {
@@ -162,6 +208,8 @@ const sleep = (ms) => {
 						shot( args.url, pageName, args.screen, outPath, 1000, null, last, compare_with)
 					})
 				});
+
+
 			}
 		})
 		.catch( e => {
