@@ -66,7 +66,7 @@ const sleep = (ms) => {
 		]
 	})
 		.then(async browser => {
-			const shot = async function (url, title = 'result', screen = 'desk', path = './', delay = 1500, before_ss = null, last = false ) {
+			const shot = async function (url, title = 'result', screen = 'desk', path = './', delay = 1500, before_ss = null, last = false, compare_with = null ) {
 				const sizes = screens[screen]
 				const page = await browser.newPage()
 				await page.setViewport({'width': sizes.w, 'height': sizes.h, deviceScaleFactor: 1})
@@ -93,20 +93,38 @@ const sleep = (ms) => {
 					}
 				})
 
-				Jimp.read(imgData).then( function (image) {
-					return image.getBase64( Jimp.MIME_PNG, function () {
+				await Jimp.read(imgData).then( async function (image) {
+
+					if ( compare_with !== null ) {
+
+						Jimp.read( path + compare_with + ".png", function (err, image2) {
+							var diff = Jimp.diff(image, image2, 0.2);
+
+							diff.image.write( path + 'diff-' + title + '.png',function (err) {} )
+						})
+					}
+
+					return await image.getBase64( Jimp.MIME_PNG, function () {
 						this.write( path + title + ".png" );
 					} )
 				})
 
-				Jimp.read(imgData).then(function (image) {
+				await Jimp.read(imgData).then(function (image) {
 					return image.resize( 300, Jimp.AUTO )
 				}).then(function (image) {
 					return image.crop( 0, 0, 300, 300 )
 				}).then(function (image) {
-					image.getBase64( Jimp.MIME_PNG, function (err, image) {
-						this.write( path + "thumb-" + title + ".png" )
-					} )
+					image.write( path + "thumb-" + title + ".png" )
+
+					if ( compare_with !== null ) {
+
+						Jimp.read( path +  "thumb-" + compare_with + ".png", function (err, image2) {
+							var diff = Jimp.diff(image, image2, 0.2);
+
+							diff.image.write( path + 'diff-' +  "thumb-" + title + '.png',function (err) {} )
+						})
+					}
+
 				}).catch(function (err) {
 					console.error(err);
 				});
@@ -130,13 +148,18 @@ const sleep = (ms) => {
 						outPath = config[key]["outPath"]
 
 					Object.keys(pages).forEach( function( pageName, k ) {
-						let args = pages[pageName];
+						let args = pages[pageName]
+						let compare_with = null
 
 						if ( ( Object.keys(pages).length - 1) === k) {
 							last = true
 						}
 
-						shot( args.url, pageName, args.screen, outPath, 1000, null, last )
+						if ( typeof args['compare_with'] !== "undefined" && typeof pages[args['compare_with']] !== "undefined" ) {
+							compare_with = args['compare_with']
+						}
+
+						shot( args.url, pageName, args.screen, outPath, 1000, null, last, compare_with)
 					})
 				});
 			}
